@@ -1,0 +1,116 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2761
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 <!DOCTYPE html>\
+<html lang="en">\
+<head>\
+  <meta charset="UTF-8">\
+  <title>PhotoSelect Pro \'97 Upload</title>\
+  <link rel="stylesheet" href="styles.css">\
+</head>\
+<body>\
+  <div class="container">\
+    <h1>\uc0\u55357 \u56548  Upload Photos for Client Selection</h1>\
+    <div id="drop-area">\
+      <p>Drag & drop photos here, or click to select</p>\
+      <input type="file" id="fileElem" multiple accept="image/*" style="display:none">\
+      <label class="button" for="fileElem">Select Files</label>\
+    </div>\
+    <progress id="progress-bar" value="0" max="100" style="display:none"></progress>\
+    <div id="gallery-link" style="margin-top: 20px; display:none">\
+      <h3>\uc0\u9989  Upload Complete!</h3>\
+      <p>Share this link with your client:</p>\
+      <a id="gallery-url" target="_blank"></a>\
+      <button id="copy-btn">\uc0\u55357 \u56523  Copy Link</button>\
+    </div>\
+  </div>\
+\
+  <script>\
+    const dropArea = document.getElementById('drop-area');\
+    const fileElem = document.getElementById('fileElem');\
+    const progressBar = document.getElementById('progress-bar');\
+    const galleryLinkDiv = document.getElementById('gallery-link');\
+    const galleryUrlElem = document.getElementById('gallery-url');\
+    const copyBtn = document.getElementById('copy-btn');\
+\
+    // Click to open file dialog\
+    dropArea.addEventListener('click', () => fileElem.click());\
+\
+    // Handle file selection\
+    fileElem.addEventListener('change', handleFiles);\
+\
+    // Drag and drop\
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => \{\
+      dropArea.addEventListener(eventName, preventDefaults, false);\
+    \});\
+\
+    function preventDefaults(e) \{\
+      e.preventDefault();\
+      e.stopPropagation();\
+    \}\
+\
+    ['dragenter', 'dragover'].forEach(eventName => \{\
+      dropArea.addEventListener(eventName, highlight, false);\
+    \});\
+\
+    ['dragleave', 'drop'].forEach(eventName => \{\
+      dropArea.addEventListener(eventName, unhighlight, false);\
+    \});\
+\
+    function highlight() \{\
+      dropArea.style.borderColor = '#007bff';\
+    \}\
+\
+    function unhighlight() \{\
+      dropArea.style.borderColor = '#ccc';\
+    \}\
+\
+    dropArea.addEventListener('drop', handleDrop, false);\
+\
+    function handleDrop(e) \{\
+      const dt = e.dataTransfer;\
+      const files = dt.files;\
+      handleFiles(\{ target: \{ files \} \});\
+    \}\
+\
+    function handleFiles(e) \{\
+      const files = e.target.files;\
+      if (!files.length) return;\
+\
+      uploadFiles(files);\
+    \}\
+\
+    function uploadFiles(files) \{\
+      const formData = new FormData();\
+      Array.from(files).forEach(file => formData.append('photos', file));\
+\
+      progressBar.style.display = 'block';\
+      fetch('/api/gallery', \{\
+        method: 'POST',\
+        body: formData\
+      \})\
+      .then(res => res.json())\
+      .then(data => \{\
+        progressBar.style.display = 'none';\
+        galleryLinkDiv.style.display = 'block';\
+        galleryUrlElem.href = data.url;\
+        galleryUrlElem.textContent = data.url;\
+\
+        copyBtn.onclick = () => \{\
+          navigator.clipboard.writeText(data.url).then(() => \{\
+            alert('Link copied to clipboard!');\
+          \});\
+        \};\
+      \})\
+      .catch(err => \{\
+        alert('Upload failed: ' + err.message);\
+        progressBar.style.display = 'none';\
+      \});\
+    \}\
+  </script>\
+</body>\
+</html>}
